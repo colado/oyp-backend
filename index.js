@@ -6,7 +6,7 @@ require("dotenv").config();
 const app = express();
 const port = 3000;
 
-// Spotify login route (Step 1: Redirect to Spotify authorization page)
+// Redirect to Spotify authorization page
 app.get("/login", (req, res) => {
   const scope = "user-read-private user-read-email"; // Scopes define what data your app needs
   const redirectUri = encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI);
@@ -27,7 +27,6 @@ app.get("/callback", async (req, res) => {
   }
 
   try {
-    // Step 3: Exchange the authorization code for an access token
     const tokenResponse = await axios({
       method: "post",
       url: "https://accounts.spotify.com/api/token",
@@ -51,24 +50,21 @@ app.get("/callback", async (req, res) => {
     const accessToken = tokenResponse.data.access_token;
     const refreshToken = tokenResponse.data.refresh_token;
 
-    // Step 4: Use access token to access Spotify API (optional, here for demo)
-    const userProfileResponse = await axios.get(
-      "https://api.spotify.com/v1/me",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    // Send the access token and user profile to the frontend
-    res.send({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user_profile: userProfileResponse.data,
+    // Set the tokens in HTTP-only cookies
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
     });
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    // Redirect to the frontend's /success path after successful login
+    res.redirect("http://localhost:5173/success");
   } catch (error) {
     console.error("Error exchanging code for token:", error);
+
     res.status(500).send("Authentication failed");
   }
 });
