@@ -1,10 +1,15 @@
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require("cookie-parser"); // To parse cookies
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
 require("dotenv").config();
 
 const app = express();
 const port = 3000;
+
+// TODO: Check if this is still needed
+app.use(bodyParser.json({ limit: "10mb" })); // Adjust the limit as needed
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
 app.use(cors({
   origin: 'http://localhost:5173', // Allow requests from local frontend URL

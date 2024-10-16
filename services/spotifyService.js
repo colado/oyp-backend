@@ -64,16 +64,49 @@ const handleSpotifyCallback = async (req, res) => {
 
 const fetchPlaylists = async (accessToken) => {
   try {
-    const response = await axios.get('https://api.spotify.com/v1/me/playlists', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axios.get(
+      "https://api.spotify.com/v1/me/playlists",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
-    console.error('Error fetching playlists from Spotify:', error);
+    console.error("Error fetching playlists from Spotify:", error);
     return null;
   }
 };
 
-module.exports = { loginSpotify, handleSpotifyCallback, fetchPlaylists };
+const importPlaylistsFromSpotify = async (req, res) => {
+  const accessToken = req.cookies["access_token"];
+
+  if (!accessToken) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: No access token provided" });
+  }
+
+  try {
+    const playlists = await fetchPlaylists(accessToken);
+
+    if (!playlists) {
+      return res
+        .status(500)
+        .json({ message: "Failed to fetch playlists from Spotify" });
+    }
+
+    res.json({ playlists });
+  } catch (error) {
+    console.error("Error importing playlists from Spotify:", error);
+    res.status(500).json({ message: "Error importing playlists from Spotify" });
+  }
+};
+
+module.exports = {
+  loginSpotify,
+  handleSpotifyCallback,
+  fetchPlaylists,
+  importPlaylistsFromSpotify,
+};
