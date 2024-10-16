@@ -54,8 +54,7 @@ const handleSpotifyCallback = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
     });
 
-    // TODO: Redirect to the frontend's /success path after successful login
-    res.redirect("http://localhost:5173/success");
+    res.redirect("http://localhost:5173/");
   } catch (error) {
     console.error("Error exchanging code for token:", error);
 
