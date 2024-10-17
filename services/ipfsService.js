@@ -15,7 +15,10 @@ const savePlaylistToIPFS = async (playlistData) => {
 
     return response.data.IpfsHash; // Return the CID (Content Identifier) from IPFS
   } catch (error) {
-    console.error("Error saving playlist to IPFS:", error.response ? error.response.data : error.message);
+    console.error(
+      "Error saving playlist to IPFS:",
+      error.response ? error.response.data : error.message
+    );
     return null;
   }
 };
@@ -45,4 +48,28 @@ const savePlaylistsToIPFS = async (req, res) => {
   }
 };
 
-module.exports = { savePlaylistToIPFS, savePlaylistsToIPFS };
+const getPlaylistsFromIPFS = async (req, res) => {
+  const { cid } = req.params;
+  const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
+
+  try {
+    const playlistData = await axios.get(url);
+
+    if (!playlistData.data) {
+      return res
+        .status(404)
+        .json({ message: "No playlists found for this CID" });
+    }
+
+    return res.json(playlistData.data);
+  } catch (error) {
+    console.error("Error fetching playlists from IPFS:", error);
+    return res.status(500).json({ message: "Error fetching playlists" });
+  }
+};
+
+module.exports = {
+  savePlaylistToIPFS,
+  savePlaylistsToIPFS,
+  getPlaylistsFromIPFS,
+};
